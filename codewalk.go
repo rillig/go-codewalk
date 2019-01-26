@@ -204,13 +204,19 @@ func GenerateCodewalk(src string, dst string, basedir string) error {
 				curr.codewalk.file = lex.Rest()
 
 			case "start":
-				err = curr.codewalk.setStart(regexp.MustCompile(lex.Rest()))
+				re, err := regexp.Compile(lex.Rest())
+				if err == nil {
+					err = curr.codewalk.setStart(re)
+				}
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
 				}
 
 			case "end":
-				err = curr.codewalk.setEnd(regexp.MustCompile(lex.Rest()))
+				re, err := regexp.Compile(lex.Rest())
+				if err == nil {
+					err = curr.codewalk.setEnd(re)
+				}
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
 				}
