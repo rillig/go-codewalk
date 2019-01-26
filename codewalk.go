@@ -7,6 +7,7 @@ import (
 	"netbsd.org/pkglint/textproc"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -213,6 +214,13 @@ func GenerateCodewalk(src string, dst string, basedir string) error {
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
 				}
+
+			case "endUp":
+				n, err := strconv.Atoi(lex.Rest())
+				if err != nil {
+					return fmt.Errorf("%s:%d: %s", src, lineno, err)
+				}
+				curr.codewalk.end -= n
 
 			case "go:func":
 				doc := true
