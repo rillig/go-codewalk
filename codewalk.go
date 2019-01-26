@@ -263,7 +263,7 @@ func GenerateCodewalk(src string, dst string, basedir string) error {
 	for _, block := range blocks {
 		if block.codewalk != nil {
 			lines = append(lines,
-				fmt.Sprintf("> from [%[1]s](%[1]s#L%d):", block.codewalk.file, block.codewalk.start),
+				fmt.Sprintf("> from [%[1]s](%[1]s#L%d):", block.codewalk.file, block.codewalk.start+1),
 				"",
 				"```go")
 			lines = append(lines, block.lines...)
