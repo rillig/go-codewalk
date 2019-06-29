@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -82,10 +83,11 @@ func (c *codewalk) setGoFunc(name string, doc bool, body bool) error {
 		parts[i] = "\\b\\Q" + part + "\\E\\b"
 	}
 	re := regexp.MustCompile("^func\\b.*" + strings.Join(parts, ".*")) // just a little cheated
+
 	for i, line := range lines {
 		if re.MatchString(line) {
 			c.start = i
-			if strings.HasSuffix(line, "{") {
+			if strings.HasSuffix(line, "{") && body {
 				for j := i + 1; j < len(lines); j++ {
 					if strings.HasPrefix(lines[j], "}") { // also cheated
 						c.end = j
@@ -119,7 +121,7 @@ func (c *codewalk) setGoType(name string, doc bool, body bool) error {
 	for i, line := range lines {
 		if i > c.start && strings.HasPrefix(line, needle) {
 			c.start = i
-			if strings.Contains(line, "struct {") {
+			if strings.Contains(line, "struct {") && body {
 				for j := i + 1; j < len(lines); j++ {
 					if strings.HasPrefix(lines[j], "}") { // also cheated
 						c.end = j
@@ -159,7 +161,7 @@ func (c *codewalk) finish() ([]string, error) {
 	return lines[c.start : c.end+1], nil
 }
 
-func GenerateCodewalk(src string, dst string, basedir string) error {
+func GenerateCodewalk(src string, dst string) error {
 	srcText, err := ioutil.ReadFile(src)
 	if err != nil {
 		return err
@@ -229,39 +231,31 @@ func GenerateCodewalk(src string, dst string, basedir string) error {
 				curr.codewalk.end -= n
 
 			case "go:func":
-				doc := true
-				body := true
+				flags := flag.NewFlagSet("go:func", flag.ContinueOnError)
+				noDoc := flags.Bool("no-doc", false, "")
+				noBody := flags.Bool("no-body", false, "")
 
-				args := strings.Fields(lex.Rest())
-				for len(args) > 0 {
-					if args[0] == "-no-doc" {
-						doc = true
-					} else if args[0] == "-no-body" {
-						body = false
-					} else {
-						break
-					}
+				err := flags.Parse(strings.Fields(lex.Rest()))
+				if err != nil || len(flags.Args()) != 1 {
+					return fmt.Errorf("%s:%d: usage: go:func [-no-doc] [-no-body] [<Type>.]<Name>", src, lineno)
 				}
-				err = curr.codewalk.setGoFunc(lex.Rest(), doc, body)
+
+				err = curr.codewalk.setGoFunc(flags.Arg(0), !*noDoc, !*noBody)
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
 				}
 
 			case "go:type":
-				doc := true
-				body := true
+				flags := flag.NewFlagSet("go:type", flag.ContinueOnError)
+				noDoc := flags.Bool("no-doc", false, "")
+				noBody := flags.Bool("no-body", false, "")
 
-				args := strings.Fields(lex.Rest())
-				for len(args) > 0 {
-					if args[0] == "-no-doc" {
-						doc = true
-					} else if args[0] == "-no-body" {
-						body = false
-					} else {
-						break
-					}
+				err := flags.Parse(strings.Fields(lex.Rest()))
+				if err != nil || len(flags.Args()) != 1 {
+					return fmt.Errorf("%s:%d: usage: go:type [-no-doc] [-no-body] <Type>", src, lineno)
 				}
-				err = curr.codewalk.setGoType(lex.Rest(), doc, body)
+
+				err = curr.codewalk.setGoType(flags.Arg(0), !*noDoc, !*noBody)
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
 				}
@@ -292,12 +286,12 @@ func GenerateCodewalk(src string, dst string, basedir string) error {
 }
 
 func main() {
-	if len(os.Args) != 4 {
-		_, _ = fmt.Fprintf(os.Stderr, "usage: %s <source.md> <target.md> <basedir>\n", os.Args[0])
+	if len(os.Args) != 3 {
+		_, _ = fmt.Fprintf(os.Stderr, "usage: %s <source.md> <target.md>\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	err := GenerateCodewalk(os.Args[1], os.Args[2], os.Args[3])
+	err := GenerateCodewalk(os.Args[1], os.Args[2])
 	if err != nil {
 		log.Fatal(err)
 	}
