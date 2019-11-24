@@ -8,9 +8,10 @@ Unfortunately they are limited to the Go standard library and cannot be
 used for third-party code. Therefore I wrote this alternative, using Markdown
 as the primary markup language instead of XML.
 
-There are two documents in this folder: [codewalk.src.go] contains the
-source code of the codewalk, while [codewalk.md] contains the documentation
-generated from that file. It is generated using this command:
+There are two documents in this folder: [README.src.md](README.src.md)
+contains the source code of the codewalk, while [README.md](README.md)
+contains the documentation generated from that file. It is generated
+using this command:
 
 ~~~shell script
 codewalk README.src.md README.md
