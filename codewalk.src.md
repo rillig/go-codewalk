@@ -18,7 +18,7 @@ codewalk codewalk.src.md codewalk.md
 
 To include a code snippet in the document, add a block like the following:
 
-    ~~~codewalk
+    ```codewalk
     file    codewalk.go
     start   ^func Name
     end     ^}
@@ -26,26 +26,26 @@ To include a code snippet in the document, add a block like the following:
     go:func FunctionName
     go:func -no-doc -no-body Type.Method
     go:type -no-doc -no-body Type
-    ~~~
+    ```
 
 Each line in the above block is a command. The above commands are just a
 summary and cannot all be combined. To get an idea about the possibilities,
 here is the type definition of a code block:
 
-~~~codewalk
+```codewalk
 file    codewalk.go
 go:type block
-~~~
+```
 
 The lines of a block are contiguous, though it would be possible to add
 some "grep" feature, to only show matching lines.
 
 When a block is parsed, its `codewalk` field gets filled. Its definition is:
 
-~~~codewalk
+```codewalk
 file    codewalk.go
 go:type codewalk
-~~~
+```
 
 Here it becomes obvious that the commands of a `codewalk` block in the
 Markdown document can only manipulate the start and end line of the block.
