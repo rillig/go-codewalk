@@ -162,7 +162,7 @@ func (c *codewalk) finish() ([]string, error) {
 }
 
 func GenerateCodewalk(src string, dst string) error {
-	srcText, err := ioutil.ReadFile(src)
+	srcBytes, err := ioutil.ReadFile(src)
 	if err != nil {
 		return err
 	}
@@ -178,7 +178,9 @@ func GenerateCodewalk(src string, dst string) error {
 	}
 
 	lineno := 0
-	for _, line := range strings.Split(string(srcText), "\n") {
+	srcText := strings.Replace(string(srcBytes), "\r\n", "\n", -1)
+	srcLines := strings.Split(srcText, "\n")
+	for _, line := range srcLines {
 		lineno++
 		switch {
 		case curr.codewalk == nil && line == "```codewalk":
@@ -265,6 +267,7 @@ func GenerateCodewalk(src string, dst string) error {
 			}
 		}
 	}
+	emit()
 
 	var lines []string
 
