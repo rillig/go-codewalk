@@ -13,7 +13,7 @@ source code of the codewalk, while [codewalk.md] contains the documentation
 generated from that file. It is generated using this command:
 
 ~~~shell script
-codewalk codewalk.src.md codewalk.md
+codewalk README.src.md README.md
 ~~~
 
 To include a code snippet in the document, add a block like the following:
@@ -32,9 +32,13 @@ Each line in the above block is a command. The above commands are just a
 summary and cannot all be combined. To get an idea about the possibilities,
 here is the type definition of a code block:
 
-```codewalk
-file    codewalk.go
-go:type block
+> from [codewalk.go](codewalk.go#L15):
+
+```go
+type block struct {
+	lines    []string
+	codewalk *codewalk
+}
 ```
 
 The lines of a block are contiguous, though it would be possible to add
@@ -42,9 +46,14 @@ some "grep" feature, to only show matching lines.
 
 When a block is parsed, its `codewalk` field gets filled. Its definition is:
 
-```codewalk
-file    codewalk.go
-go:type codewalk
+> from [codewalk.go](codewalk.go#L20):
+
+```go
+type codewalk struct {
+	file  string
+	start int // inclusive
+	end   int // inclusive
+}
 ```
 
 Here it becomes obvious that the commands of a `codewalk` block in the
@@ -52,3 +61,4 @@ Markdown document can only manipulate the start and end line of the block.
 
 To see a more complete example file, have a look at the codewalk of the
 [pkglint](https://github.com/rillig/pkglint/blob/master/codewalk.md) project.
+
