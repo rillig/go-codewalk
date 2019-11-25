@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -179,6 +180,7 @@ func GenerateCodewalk(src string, dst string) error {
 
 	lineno := 0
 	srcText := strings.Replace(string(srcBytes), "\r\n", "\n", -1)
+	srcText = strings.TrimRight(srcText, "\n")
 	srcLines := strings.Split(srcText, "\n")
 	for _, line := range srcLines {
 		lineno++
@@ -284,7 +286,13 @@ func GenerateCodewalk(src string, dst string) error {
 		}
 	}
 
-	err = ioutil.WriteFile(dst, []byte(strings.Join(append(lines, ""), "\n")), 0666)
+	var sb bytes.Buffer
+	for _, line := range lines {
+		sb.WriteString(line)
+		sb.WriteByte('\n')
+	}
+
+	err = ioutil.WriteFile(dst, sb.Bytes(), 0666)
 	return err
 }
 
