@@ -136,6 +136,9 @@ func (c *codewalk) setGoType(name string, doc bool, body bool) error {
 				}
 			} else {
 				c.end = c.start
+				for doc && c.start > 0 && strings.HasPrefix(lines[c.start-1], "//") {
+					c.start--
+				}
 				return nil
 			}
 			return fmt.Errorf("end of type %q not found after %s:%d", name, c.file, c.start)
