@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"netbsd.org/pkglint/textproc"
 	"os"
 	"regexp"
 	"strconv"
@@ -204,8 +203,8 @@ func GenerateCodewalk(src string, dst string) error {
 			curr.lines = append(curr.lines, line)
 
 		default:
-			lex := textproc.NewLexer(line)
-			cmd := lex.NextBytesSet(textproc.NewByteSet("A-Za-z:"))
+			lex := NewLexer(line)
+			cmd := lex.NextBytesSet(NewByteSet("A-Za-z:"))
 			lex.SkipHspace()
 
 			switch cmd {
