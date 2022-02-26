@@ -41,11 +41,11 @@ go:type block
 The lines of a block are contiguous, though it would be possible to add
 some "grep" feature, to only show matching lines.
 
-When a block is parsed, its `codewalk` field gets filled. Its definition is:
+When a block is parsed, its `snippet` field gets filled. Its definition is:
 
 ```codewalk
 file    codewalk.go
-go:type codewalk
+go:type snippet
 ```
 
 Here it becomes obvious that the commands of a `codewalk` block in the

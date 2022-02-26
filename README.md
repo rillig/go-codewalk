@@ -37,8 +37,8 @@ here is the type definition of a code block:
 
 ```go
 type block struct {
-	lines    []string
-	codewalk *codewalk
+	lines   []string
+	snippet *snippet
 }
 ```
 
@@ -50,7 +50,7 @@ When a block is parsed, its `codewalk` field gets filled. Its definition is:
 > from [codewalk.go](codewalk.go#L20):
 
 ```go
-type codewalk struct {
+type snippet struct {
 	file  string
 	start int // inclusive
 	end   int // inclusive

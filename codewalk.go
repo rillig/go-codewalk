@@ -13,20 +13,20 @@ import (
 )
 
 type block struct {
-	lines    []string
-	codewalk *codewalk
+	lines   []string
+	snippet *snippet
 }
 
-type codewalk struct {
+type snippet struct {
 	file  string
 	start int // inclusive
 	end   int // inclusive
 }
 
-func newCodewalk() *codewalk { return &codewalk{"", -1, -1} }
+func newSnippet() *snippet { return &snippet{"", -1, -1} }
 
-func (c *codewalk) setStart(re *regexp.Regexp) error {
-	text, err := ioutil.ReadFile(c.file)
+func (s *snippet) setStart(re *regexp.Regexp) error {
+	text, err := ioutil.ReadFile(s.file)
 	lines := strings.Split(string(text), "\n")
 	if err != nil {
 		return err
@@ -35,44 +35,44 @@ func (c *codewalk) setStart(re *regexp.Regexp) error {
 	count := 0
 	for i, line := range lines {
 		if re.MatchString(line) {
-			c.start = i
+			s.start = i
 			count++
 		}
 	}
 
 	switch count {
 	case 0:
-		return fmt.Errorf("regular expression %q not found in %q", re, c.file)
+		return fmt.Errorf("regular expression %q not found in %q", re, s.file)
 	case 1:
 		return nil
 	default:
-		return fmt.Errorf("regular expression %q found %d times in %q", re, count, c.file)
+		return fmt.Errorf("regular expression %q found %d times in %q", re, count, s.file)
 	}
 }
 
-func (c *codewalk) setEnd(re *regexp.Regexp) error {
-	if c.start == 0 {
+func (s *snippet) setEnd(re *regexp.Regexp) error {
+	if s.start == 0 {
 		return fmt.Errorf("the \"end\" command is only valid after a preceding \"start\" command")
 	}
 
-	text, err := ioutil.ReadFile(c.file)
+	text, err := ioutil.ReadFile(s.file)
 	lines := strings.Split(string(text), "\n")
 	if err != nil {
 		return err
 	}
 
 	for i, line := range lines {
-		if i > c.start && re.MatchString(line) {
-			c.end = i
+		if i > s.start && re.MatchString(line) {
+			s.end = i
 			return nil
 		}
 	}
 
-	return fmt.Errorf("regular expression %q not found after %q:%d", re, c.file, c.start)
+	return fmt.Errorf("regular expression %q not found after %q:%d", re, s.file, s.start)
 }
 
-func (c *codewalk) setGoFunc(name string, doc bool, body bool) error {
-	text, err := ioutil.ReadFile(c.file)
+func (s *snippet) setGoFunc(name string, doc bool, body bool) error {
+	text, err := ioutil.ReadFile(s.file)
 	lines := strings.Split(string(text), "\n")
 	if err != nil {
 		return err
@@ -86,32 +86,32 @@ func (c *codewalk) setGoFunc(name string, doc bool, body bool) error {
 
 	for i, line := range lines {
 		if re.MatchString(line) {
-			c.start = i
+			s.start = i
 			if strings.HasSuffix(line, "{") && body {
 				for j := i + 1; j < len(lines); j++ {
 					if strings.HasPrefix(lines[j], "}") { // also cheated
-						c.end = j
+						s.end = j
 
-						for doc && c.start > 0 && strings.HasPrefix(lines[c.start-1], "//") {
-							c.start--
+						for doc && s.start > 0 && strings.HasPrefix(lines[s.start-1], "//") {
+							s.start--
 						}
 
 						return nil
 					}
 				}
 			} else {
-				c.end = c.start
+				s.end = s.start
 				return nil
 			}
-			return fmt.Errorf("end of function %q not found after %s:%d", name, c.file, c.start)
+			return fmt.Errorf("end of function %q not found after %s:%d", name, s.file, s.start)
 		}
 	}
 
-	return fmt.Errorf("function %q not found in %q", name, c.file)
+	return fmt.Errorf("function %q not found in %q", name, s.file)
 }
 
-func (c *codewalk) setGoType(name string, doc bool, body bool) error {
-	text, err := ioutil.ReadFile(c.file)
+func (s *snippet) setGoType(name string, doc bool, body bool) error {
+	text, err := ioutil.ReadFile(s.file)
 	lines := strings.Split(string(text), "\n")
 	if err != nil {
 		return err
@@ -119,49 +119,49 @@ func (c *codewalk) setGoType(name string, doc bool, body bool) error {
 
 	needle := "type " + name + " "
 	for i, line := range lines {
-		if i > c.start && strings.HasPrefix(line, needle) {
-			c.start = i
+		if i > s.start && strings.HasPrefix(line, needle) {
+			s.start = i
 			if strings.Contains(line, "struct {") && body {
 				for j := i + 1; j < len(lines); j++ {
 					if strings.HasPrefix(lines[j], "}") { // also cheated
-						c.end = j
+						s.end = j
 
-						for doc && c.start > 0 && strings.HasPrefix(lines[c.start-1], "//") {
-							c.start--
+						for doc && s.start > 0 && strings.HasPrefix(lines[s.start-1], "//") {
+							s.start--
 						}
 
 						return nil
 					}
 				}
 			} else {
-				c.end = c.start
-				for doc && c.start > 0 && strings.HasPrefix(lines[c.start-1], "//") {
-					c.start--
+				s.end = s.start
+				for doc && s.start > 0 && strings.HasPrefix(lines[s.start-1], "//") {
+					s.start--
 				}
 				return nil
 			}
-			return fmt.Errorf("end of type %q not found after %s:%d", name, c.file, c.start)
+			return fmt.Errorf("end of type %q not found after %s:%d", name, s.file, s.start)
 		}
 	}
 
-	return fmt.Errorf("type %q not found in %q", name, c.file)
+	return fmt.Errorf("type %q not found in %q", name, s.file)
 }
 
-func (c *codewalk) finish() ([]string, error) {
-	text, err := ioutil.ReadFile(c.file)
+func (s *snippet) finish() ([]string, error) {
+	text, err := ioutil.ReadFile(s.file)
 	lines := strings.Split(string(text), "\n")
 	if err != nil {
 		return nil, err
 	}
 
-	if c.start == -1 {
+	if s.start == -1 {
 		return nil, fmt.Errorf("missing start for codewalk block")
 	}
-	if c.end == -1 {
+	if s.end == -1 {
 		return nil, fmt.Errorf("missing end for codewalk block")
 	}
 
-	return lines[c.start : c.end+1], nil
+	return lines[s.start : s.end+1], nil
 }
 
 func GenerateCodewalk(src string, dst string) error {
@@ -187,19 +187,19 @@ func GenerateCodewalk(src string, dst string) error {
 	for _, line := range srcLines {
 		lineno++
 		switch {
-		case curr.codewalk == nil && line == "```codewalk":
+		case curr.snippet == nil && line == "```codewalk":
 			emit()
-			curr.codewalk = newCodewalk()
+			curr.snippet = newSnippet()
 
-		case curr.codewalk != nil && line == "```":
-			code, err := curr.codewalk.finish()
+		case curr.snippet != nil && line == "```":
+			code, err := curr.snippet.finish()
 			if err != nil {
 				return err
 			}
 			curr.lines = code
 			emit()
 
-		case curr.codewalk == nil:
+		case curr.snippet == nil:
 			curr.lines = append(curr.lines, line)
 
 		default:
@@ -209,12 +209,12 @@ func GenerateCodewalk(src string, dst string) error {
 
 			switch cmd {
 			case "file":
-				curr.codewalk.file = lex.Rest()
+				curr.snippet.file = lex.Rest()
 
 			case "start":
 				re, err := regexp.Compile(lex.Rest())
 				if err == nil {
-					err = curr.codewalk.setStart(re)
+					err = curr.snippet.setStart(re)
 				}
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
@@ -223,7 +223,7 @@ func GenerateCodewalk(src string, dst string) error {
 			case "end":
 				re, err := regexp.Compile(lex.Rest())
 				if err == nil {
-					err = curr.codewalk.setEnd(re)
+					err = curr.snippet.setEnd(re)
 				}
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
@@ -234,7 +234,7 @@ func GenerateCodewalk(src string, dst string) error {
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
 				}
-				curr.codewalk.end -= n
+				curr.snippet.end -= n
 
 			case "go:func":
 				flags := flag.NewFlagSet("go:func", flag.ContinueOnError)
@@ -246,7 +246,7 @@ func GenerateCodewalk(src string, dst string) error {
 					return fmt.Errorf("%s:%d: usage: go:func [-no-doc] [-no-body] [<Type>.]<Name>", src, lineno)
 				}
 
-				err = curr.codewalk.setGoFunc(flags.Arg(0), !*noDoc, !*noBody)
+				err = curr.snippet.setGoFunc(flags.Arg(0), !*noDoc, !*noBody)
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
 				}
@@ -261,7 +261,7 @@ func GenerateCodewalk(src string, dst string) error {
 					return fmt.Errorf("%s:%d: usage: go:type [-no-doc] [-no-body] <Type>", src, lineno)
 				}
 
-				err = curr.codewalk.setGoType(flags.Arg(0), !*noDoc, !*noBody)
+				err = curr.snippet.setGoType(flags.Arg(0), !*noDoc, !*noBody)
 				if err != nil {
 					return fmt.Errorf("%s:%d: %s", src, lineno, err)
 				}
@@ -276,9 +276,9 @@ func GenerateCodewalk(src string, dst string) error {
 	var lines []string
 
 	for _, block := range blocks {
-		if block.codewalk != nil {
+		if block.snippet != nil {
 			lines = append(lines,
-				fmt.Sprintf("> from [%[1]s](%[1]s#L%d):", block.codewalk.file, block.codewalk.start+1),
+				fmt.Sprintf("> from [%[1]s](%[1]s#L%d):", block.snippet.file, block.snippet.start+1),
 				"",
 				"```go")
 			lines = append(lines, block.lines...)
