@@ -45,7 +45,7 @@ type block struct {
 The lines of a block are contiguous, though it would be possible to add
 some "grep" feature, to only show matching lines.
 
-When a block is parsed, its `codewalk` field gets filled. Its definition is:
+When a block is parsed, its `snippet` field gets filled. Its definition is:
 
 > from [codewalk.go](codewalk.go#L20):
 
@@ -61,4 +61,4 @@ Here it becomes obvious that the commands of a `codewalk` block in the
 Markdown document can only manipulate the start and end line of the block.
 
 To see a more complete example file, have a look at the codewalk of the
-[pkglint](https://github.com/rillig/pkglint/blob/master/codewalk.md) project.
+[pkglint](https://github.com/rillig/pkglint/blob/master/v23/codewalk.md) project.

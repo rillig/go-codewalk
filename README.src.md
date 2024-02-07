@@ -52,4 +52,4 @@ Here it becomes obvious that the commands of a `codewalk` block in the
 Markdown document can only manipulate the start and end line of the block.
 
 To see a more complete example file, have a look at the codewalk of the
-[pkglint](https://github.com/rillig/pkglint/blob/master/codewalk.md) project.
+[pkglint](https://github.com/rillig/pkglint/blob/master/v23/codewalk.md) project.
