@@ -87,23 +87,20 @@ func (s *snippet) setGoFunc(name string, doc bool, body bool) error {
 	for i, line := range lines {
 		if re.MatchString(line) {
 			s.start = i
+			for doc && s.start > 0 && strings.HasPrefix(lines[s.start-1], "//") {
+				s.start--
+			}
 			if strings.HasSuffix(line, "{") && body {
 				for j := i + 1; j < len(lines); j++ {
 					if strings.HasPrefix(lines[j], "}") { // also cheated
 						s.end = j
-
-						for doc && s.start > 0 && strings.HasPrefix(lines[s.start-1], "//") {
-							s.start--
-						}
-
 						return nil
 					}
 				}
-			} else {
-				s.end = s.start
-				return nil
+				return fmt.Errorf("end of function %q not found after %s:%d", name, s.file, s.start)
 			}
-			return fmt.Errorf("end of function %q not found after %s:%d", name, s.file, s.start)
+			s.end = i
+			return nil
 		}
 	}
 
